@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    
+{% endblock %}
+
+{% block javascript %}
+{% endblock %}
+{% block body %}
+{% load joinn %}
+
+<nav class="navbar sticky-top navbar-dark bg-dark mb-3">
+  <span class="navbar-brand" >Appointments for Dr. {{ doctor.first_name }}</span>
+  <span class="navbar-text text-right">
+    Average Wait Time: {{ avg_time }} minutes
+  </span>
+</nav>
+
+<div class="container">
+    {% for i in appointments %}
+        <div class="alert alert-info" role="alert">
+          <h4 class="alert-heading"><strong>{{ i.first_name }} {{ i.last_name }}</strong></h4>
+            {% if i.status == "Arrived" or i.status == "Complete" or i.status == "In Session" or i.status == "No Show"%}
+                <p>Status: {{ i.status }}</p>
+            {% else %}
+                <p>Status: {{ "Not Arrived" }}</p>
+            {% endif %}
+            
+            <p>Date/Time: {{ i.scheduled_time|slice:":10" }} / {{i.scheduled_time|slice:"-8:"}}</p>
+            Summary: {{ i.summary }}
+            <hr>
+
+            <p class="mb-0">
+                {% if i.status == "Arrived" %}
+                    <button type="submit" class= "btn btn-primary" onclick="location.href='{% url 'update_status' i.id|joinn:0 %}'">See Patient</button>
+                {% elif i.status == "In Session"%}
+                <form method="get" action="{% url 'update_status' i.id|joinn:1 %}">
+                    <input type="text" id="summary" name="summary" class="form-control" placeholder="Enter Summary here"></input><br>
+                    <button type="submit" id="complete" class= "btn btn-success">Complete</button>
+                    
+                    <input type="hidden" name="p_id" value="{{ i.patient }}">
+                </form>
+                {% elif i.status == "Complete" or i.status == "No Show" %}
+                
+                {% else %}
+                    <button type="submit" class= "btn btn-danger" onclick="location.href='{% url 'update_status' i.id|joinn:2 %}'">No Show</button>
+                {% endif %}
+            </p>
+            <strong><p class="text-right">Wait Time: 
+                {% for key, value in wait_time.items %}
+                    {% if key == i.id %}
+                        {{ value }}
+                    {% endif %}
+                {% endfor %}
+                minutes
+            </p></strong>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
